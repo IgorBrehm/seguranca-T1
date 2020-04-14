@@ -1,27 +1,26 @@
 import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 
+// Classe que executa todo o processo de quebra da cifra
 public class Decriptador {
 
-    public char[] textoCifrado;
+    public char[] textoCifrado; // texto no formato cifrado
     public double coincidencia = 0.072723; // indice de coincidencia para o portugues
-    public ArrayList<String> letras = new ArrayList<String>();
-    public ArrayList<Double> frequencias = new ArrayList<Double>();
+    public char[] letrasAlfabetica = new char[26]; // alfabeto em ordem alfabetica
 
-    public Decriptador(String caminho) throws FileNotFoundException, InterruptedException {
+    public Decriptador(String caminho) throws FileNotFoundException {
 
-        lerArquivos(caminho);
+        lerArquivos(caminho); // ler o arquivo de entrada
 
-        int tamanhoChave = encontrarTamanhoChave();
+        int tamanhoChave = encontrarTamanhoChave(); // encontrar o tamanho da chave
 
-        int[] deslocamentos = encontrarDeslocamentos(tamanhoChave);
+        int[] deslocamentos = encontrarDeslocamentos(tamanhoChave); // encontrar deslocamentos/senhas
 
-        mostrarTextoDecifrado(deslocamentos);
+        mostrarTextoDecifrado(deslocamentos); // usar os deslocamentos/senhas para quebrar a cifra
     }
 
-    // Usa as letras da chave para decifrar o texto de entrada e mostrar o texto claro
+    // Usa os deslocamentos para decifrar o texto de entrada e mostrar o texto claro
     public void mostrarTextoDecifrado(int[] deslocamentos){
         
         int min = 65; // A em ASCII
@@ -54,12 +53,12 @@ public class Decriptador {
     public int[] encontrarDeslocamentos(int tamanhoChave){
 
         int[] resposta = new int[tamanhoChave];
-        for(int w = 0; w < tamanhoChave; w++){ // controlando a quantia de iteracoes em relacao a i
-
-            int[] ocorrencias = new int[letras.size()];
+        Scanner input = new Scanner(System.in);
+        for(int w = 0; w < tamanhoChave; w++){ 
+            int[] ocorrencias = new int[letrasAlfabetica.length];
             for(int j = w; j < textoCifrado.length; j += tamanhoChave) { // passando por todos os elementos
-                for(int k = 0; k < letras.size(); k++){ // comparando o elemento atual com as letras do alfabeto
-                    char aux = letras.get(k).charAt(0);
+                for(int k = 0; k < letrasAlfabetica.length; k++){ // comparando o elemento atual com as letras do alfabeto
+                    char aux = letrasAlfabetica[k];
                     //System.out.println(array[j]+" : "+aux+" ==? "+(array[j] == aux));
                     if(aux == textoCifrado[j]){
                         ocorrencias[k] += 1;
@@ -68,25 +67,43 @@ public class Decriptador {
                 }
             }
             
-            // sei as ocorrencias de cada letra
-            // a letra que mais apareceu vai ser a letra usada para cifrar o A
             int maior = 0;
-            int indice = 0;
+            int indiceMaior = 0;
+            int indiceSegundoMaior = 0;
             for(int p = 0; p < ocorrencias.length; p++){
                 if(ocorrencias[p] > maior){
                     maior = ocorrencias[p]; 
-                    indice = p;
+                    indiceSegundoMaior = indiceMaior;
+                    indiceMaior = p;
                 }
             }
-            // sei o indice da lista de letras onde tiveram mais ocorrencias
-            // verifico o deslocamento entre a letra e o A
-            int senha = (int)letras.get(indice).charAt(0);
-            int A = (int)letras.get(0).charAt(0);
-            resposta[w] = senha - A;
-            System.out.println("Senha: "+ senha+" = "+(char)senha);
-            System.out.println("Deslocamento "+ (w+1) +": "+resposta[w]);
-            //Thread.sleep(1000);
+
+            int senhaA = (int)letrasAlfabetica[indiceMaior];
+            //System.out.println("Senha A: "+ senhaA+" = "+(char)senhaA);
+            int senhaE = (int)letrasAlfabetica[indiceSegundoMaior];
+            //System.out.println("Senha E: "+ senhaE+" = "+(char)senhaE);
+            int A = 65;
+            int E = 69;
+            int deslocamentoA = senhaA - A;
+            int deslocamentoE = senhaE - E;
+            if(senhaE < E){
+                deslocamentoE = (senhaE - 65) + (90 - E);
+            }
+
+            System.out.println(" Escolha a senha e deslocamento para a coluna "+ (w+1) +":");
+            System.out.println("\n 1. Senha: "+senhaA+"->"+(char)senhaA+" , Deslocamento: "+deslocamentoA);
+            System.out.println("\n 2. Senha: "+senhaE+"->"+(char)senhaE+" , Deslocamento: "+deslocamentoE);
+            int escolha = input.nextInt();
+            if(escolha == 1){
+                resposta[w] = deslocamentoA;
+            }
+            else{
+                resposta[w] = deslocamentoE;
+            }
+            
+            //System.out.println("Deslocamento "+ (w+1) +": "+resposta[w]);
         }
+        input.close();
         return resposta;
     }
 
@@ -96,10 +113,10 @@ public class Decriptador {
         for(int i = 1; i <= 10; i++){ // pulando de i em i elementos ate pular de 10 em 10
             for(int w = 0; w < i; w++){ // controlando a quantia de iteracoes em relacao a i
 
-                int[] ocorrencias = new int[letras.size()];
+                int[] ocorrencias = new int[letrasAlfabetica.length];
                 for(int j = w; j < textoCifrado.length; j += i) { // passando por todos os elementos
-                    for(int k = 0; k < letras.size(); k++){ // comparando o elemento atual com as letras do alfabeto
-                        char aux = letras.get(k).charAt(0);
+                    for(int k = 0; k < letrasAlfabetica.length; k++){ // comparando o elemento atual com as letras do alfabeto
+                        char aux = letrasAlfabetica[k];
                         //System.out.println(array[j]+" : "+aux+" ==? "+(array[j] == aux));
                         if(aux == textoCifrado[j]){
                             ocorrencias[k] += 1;
@@ -120,7 +137,7 @@ public class Decriptador {
                 //System.out.println(diff + " : " + (Double.compare(diff, 0.00999) < 0));
                 //Thread.sleep(1000);
                 if(Double.compare(diff, 0.00999) < 0){
-                    System.out.println("Tamanho da chave encontrado: "+i); // tamanho da chave encontrado
+                    //System.out.println("Tamanho da chave encontrado: "+i); // tamanho da chave encontrado
                     return i;
                 }
             }
@@ -136,18 +153,13 @@ public class Decriptador {
 
         String texto = in.nextLine().toUpperCase();
         textoCifrado = texto.toCharArray();
-        System.out.println("Texto cifrado: "+texto);
+        //System.out.println("Texto cifrado: "+texto);
 
-        File arquivoFrequencias = new File("frequencias.txt"); // arquivo com as letras e suas frequencias no portugues
-        in.close();
-        in = new Scanner(arquivoFrequencias);
-
-        while(in.hasNextLine()){
-            String[] aux = in.nextLine().split(":");
-            //System.out.println(aux[0]);
-            //System.out.println(aux[1]);
-            letras.add(aux[0]);
-            frequencias.add(Double.parseDouble(aux[1]));
+        int indice = 0;
+        for(int i = 65; i <= 90; i++){
+            letrasAlfabetica[indice] = (char)i;
+            //System.out.println(letrasAlfabetica[indice]);
+            indice+=1;
         }
         in.close();
     }
